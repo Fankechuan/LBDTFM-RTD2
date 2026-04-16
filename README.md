@@ -95,7 +95,6 @@ pip install -r requirements.txt
 
 ## 4. Usage
 
-### 4.1 Training
 
 Train the LBDTFM-RTD2 from scratch or using pre-trained weights:
 
@@ -105,21 +104,6 @@ python train.py --config configs/train.yaml
 
 ---
 
-### 4.2 Evaluation
-
-```bash
-python eval.py --weights weights/best.pth
-```
-
----
-
-### 4.3 Inference
-
-```bash
-python infer.py --source demo.jpg
-```
-
----
 
 ## 5. Reproducibility
 
