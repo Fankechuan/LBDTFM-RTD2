@@ -70,20 +70,7 @@ Tested environment:
 * PyTorch >= 2.0.1
 * torchvision >= 0.15.2
 
-Additional dependencies:
 
-```bash
-torch>=2.0.1
-torchvision>=0.15.2
-faster-coco-eval>=1.6.5
-PyYAML
-tensorboard
-scipy
-pycocotools
-onnx
-onnxruntime-gpu
-tensorrt==8.5.2.2
-```
 
 Install all dependencies:
 
