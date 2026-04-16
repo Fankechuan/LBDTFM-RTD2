@@ -1,0 +1,40 @@
+task: detection
+
+evaluator:
+  type: CocoEvaluator
+  iou_types: ['bbox', ]
+
+num_classes: 2
+remap_mscoco_category: False  # 不需要重映射成COCO官方类别
+
+train_dataloader:
+  type: DataLoader
+  dataset:
+    type: CocoDetection
+    img_folder: ./dataset/infrared/images/train/
+    ann_file: ./dataset/coco_json/infrared_coco.json
+    return_masks: False
+    transforms:
+      type: Compose
+      ops: ~  # 由 dataloader.yml 中 include 指定变换
+  shuffle: True
+  num_workers: 4
+  drop_last: True
+  collate_fn:
+    type: BatchImageCollateFuncion
+
+val_dataloader:
+  type: DataLoader
+  dataset:
+    type: CocoDetection
+    img_folder: ./dataset/infrared/images/val/
+    ann_file: ./dataset/coco_json/infrared_coco.json
+    return_masks: False
+    transforms:
+      type: Compose
+      ops: ~
+  shuffle: False
+  num_workers: 4
+  drop_last: False
+  collate_fn:
+    type: BatchImageCollateFuncion

@@ -1,0 +1,137 @@
+__include__: [
+  ../runtime.yml,
+  ./include/dataloader.yml,
+  ./include/optimizer.yml,
+  ./include/rtdetrv2_r50vd.yml
+]
+
+output_dir: ./output/rtdetrv2_r50vd_vis_10_120e_coco
+
+# Backbone configuration - Now using GhostNetV2
+MODEL:
+  BACKBONE:
+    NAME: "GhostNetV2"  # Specify GhostNetV2 as Backbone
+    IN_CHANNELS: 3      # Input channels for RGB image
+    OUT_CHANNELS: 256   # Output channels (modify as needed)
+
+HybridEncoder:
+  in_channels: [512, 1024, 2048]  # Adjusted for GhostNetV2 output
+  hidden_dim: 256
+  expansion: 0.5
+
+RTDETRTransformerv2:
+  num_layers: 3
+
+epoches: 30
+
+dataset:
+  num_classes: 3
+
+evaluator:
+  type: CocoEvaluator
+  iou_types: ['bbox']
+
+train_dataloader:
+  type: DataLoader
+  dataset:
+    type: CocoDetection
+    img_folder: D:/pythoncache/dual_modal_insulator_fault_detection/GhostNetV2_rtdetrv2_SE/dataset/visible/visInsaug_new/images/train
+    ann_file: D:/pythoncache/dual_modal_insulator_fault_detection/GhostNetV2_rtdetrv2_SE/dataset/visible/visInsaug_new/coco_json/visible_train.json
+    transforms:
+      type: Compose
+      ops:
+        - type: RandomPhotometricDistort
+          p: 0.5
+        - type: RandomZoomOut
+          fill: 0
+        - type: RandomIoUCrop
+          p: 0.8
+        - type: SanitizeBoundingBoxes
+          min_size: 1
+        - type: RandomHorizontalFlip
+        - type: Resize
+          size: [640, 640]
+        - type: SanitizeBoundingBoxes
+          min_size: 1
+        - type: ConvertPILImage
+          dtype: float32
+          scale: True
+        - type: ConvertBoxes
+          fmt: cxcywh
+          normalize: True
+      policy:
+        name: stop_epoch
+        epoch: 100
+        ops: [RandomPhotometricDistort, RandomZoomOut, RandomIoUCrop]
+  shuffle: True
+  num_workers: 4
+  drop_last: True
+  collate_fn:
+    type: BatchImageCollateFuncion
+    scales: null
+    stop_epoch: 80
+  total_batch_size: 16
+
+val_dataloader:
+  type: DataLoader
+  dataset:
+    type: CocoDetection
+    img_folder: D:/pythoncache/dual_modal_insulator_fault_detection/GhostNetV2_rtdetrv2_SE/dataset/visible/visInsaug_new/images/val
+    ann_file: D:/pythoncache/dual_modal_insulator_fault_detection/GhostNetV2_rtdetrv2_SE/dataset/visible/visInsaug_new/coco_json/visible_val.json
+    return_masks: False
+    transforms:
+      type: Compose
+      ops:
+        - type: Resize
+          size: [640, 640]
+        - type: ConvertPILImage
+          dtype: float32
+          scale: True
+  shuffle: False
+  num_workers: 4
+  drop_last: False
+  collate_fn:
+    type: BatchImageCollateFuncion
+  total_batch_size: 32
+
+optimizer:
+  type: AdamW
+  lr: 0.0003
+  betas: [0.9, 0.999]
+  weight_decay: 0.0001
+  params:
+    - params: '^(?=.*(?:norm|bn)).*$'
+      weight_decay: 0.0
+
+lr_scheduler:
+  type: MultiStepLR
+  milestones: [100]
+  gamma: 0.1
+
+lr_warmup_scheduler:
+  type: LinearWarmup
+  warmup_duration: 2000
+
+use_ema: True
+ema:
+  type: ModelEMA
+  decay: 0.9999
+  warmups: 2000
+
+criterion: RTDETRCriterionv2
+RTDETRCriterionv2:
+  weight_dict:
+    loss_vfl: 2.0
+    loss_bbox: 4.0
+    loss_giou: 2.0
+  losses: [vfl, boxes]
+  alpha: 0.75
+  gamma: 2.0
+  matcher:
+    type: HungarianMatcher
+    weight_dict:
+      cost_class: 2.0
+      cost_bbox: 5.0
+      cost_giou: 2.0
+    alpha: 0.25
+    gamma: 2.0
