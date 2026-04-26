@@ -2,8 +2,6 @@
 
 This repository provides the official PyTorch implementation of the paper:
 
-**"Lightweight Bimodal Visual Detection Framework for Transmission Line Defects in Complex UAV Inspection Environments"**
-Submitted to *The Visual Computer*.
 
 ---
 
